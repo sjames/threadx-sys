@@ -12,5 +12,8 @@ license-file = "LICENSE"
 
 [build-dependencies]
 cmake = "0.1.50"
+bindgen = "0.69.1"
 
 [dependencies]
+
+
