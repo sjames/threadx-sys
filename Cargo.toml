@@ -6,6 +6,7 @@ edition = "2021"
 description = "Rust bindings for ThreadX"
 build = "build.rs"
 links = "threadx"
+license-file = "LICENSE"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
