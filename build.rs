@@ -10,9 +10,21 @@ use cmake::Config;
 fn main() {
 
     let out_dir = PathBuf::from(env::var("OUT_DIR").expect("OUT_DIR is not set"));
+    let tx_user_file = env::var("TX_USER_FILE").ok();
     let src_path = out_dir.join("threadx"); // source code of threadx is vendored here
     let threadx_gh = "https://github.com/azure-rtos/threadx.git";
     let threadx_tag = "v6.3.0_rel";
+
+    let tx_user_file_path = 
+    if let Some(tx_user_file) = tx_user_file {
+        let tx_user_file = PathBuf::from(tx_user_file).canonicalize().expect("Unable to find TX_USER_FILE");
+        println!("cargo:info=Using TX_USER_FILE: {}", tx_user_file.display());
+        println!("cargo:rerun-if-changed={}",tx_user_file.display());
+        Some(tx_user_file)
+    } else {
+        println!("cargo:info=No TX_USER_FILE specified, using defaults");
+        None
+    };
     
     // Clone threadx
     std::process::Command::new("git")
@@ -78,13 +90,19 @@ fn main() {
     };
 
     // Build threadx
-    let dst = Config::new(src_path.to_owned())
-        .define("CMAKE_TOOLCHAIN_FILE", toolchain_file)
+    let mut cfg = Config::new(src_path.to_owned());
+
+        cfg.define("CMAKE_TOOLCHAIN_FILE", toolchain_file)
         .generator("Ninja")
         .build_target("threadx")
         .env("CMAKE_C_COMPILER_LAUNCHER", compiler_wrapper_path.as_path())
-        .env("CMAKE_CXX_COMPILER_LAUNCHER", compiler_wrapper_path.as_path())
-        .build().join("build");
+        .env("CMAKE_CXX_COMPILER_LAUNCHER", compiler_wrapper_path.as_path());
+
+    if tx_user_file_path.is_some() {
+        cfg.define("TX_USER_FILE", tx_user_file_path.unwrap().to_str().unwrap());
+    };
+
+    let dst= cfg.build().join("build");
 
     println!("cargo:info=threadx build completed and output at {}", dst.display());
 
@@ -129,6 +147,7 @@ fn main() {
     let mut bindings = bindgen::Builder::default()
         .header(threadx_api_path.to_str().unwrap())
         .use_core()
+        .layout_tests(false)
         .allowlist_function("_tx.*")
         .allowlist_recursively(true);
     for include_dir in include_dirs {
