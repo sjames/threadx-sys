@@ -44,7 +44,6 @@ fn main() {
      */
 
     let build_commands = out_dir.join("build_commands.txt");
-    let _ = std::fs::remove_file(build_commands.as_path());
 
     // We create a wrapper script to capture the commands passed to the compiler
     let launcher_script = format!(r#"
@@ -127,13 +126,19 @@ fn main() {
 
     let threadx_api_path = src_path.join("common/inc/tx_api.h");
     let bindings_path = out_dir.join("generated.rs");
-    let mut bindings = bindgen::Builder::default().header(threadx_api_path.to_str().unwrap());
+    let mut bindings = bindgen::Builder::default()
+        .header(threadx_api_path.to_str().unwrap())
+        .use_core()
+        .allowlist_function("_tx.*")
+        .allowlist_recursively(true);
     for include_dir in include_dirs {
         bindings = bindings.clang_arg(format!("-I{}", include_dir));
     }
     for define in defines {
         bindings = bindings.clang_arg(format!("-D{}", define));
     }
+
+    
 
     // Get the standard include paths from the compiler
     // Create an empty file to pass to the compiler
