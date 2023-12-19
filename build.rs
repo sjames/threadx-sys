@@ -1,13 +1,33 @@
 // Build script for Building threadx and to create the bindings
 
+use std::path::PathBuf;
 use std::process::Command;
 use std::env;
 use cmake::Config;
 
 fn main() {
 
-    let out_dir = env::var("OUT_DIR").expect("OUT_DIR is not set");
-    let src_path = "threadx"; // source code of threadx is vendored here
+    let out_dir = PathBuf::from(env::var("OUT_DIR").expect("OUT_DIR is not set"));
+    let src_path = out_dir.join("threadx"); // source code of threadx is vendored here
+    let threadx_gh = "https://github.com/azure-rtos/threadx.git";
+    let threadx_tag = "v6.3.0_rel";
+    
+    // Clone threadx
+    std::process::Command::new("git")
+        .arg("clone")
+        .arg(threadx_gh)
+        .current_dir(out_dir)
+        .output()
+    .expect("Failed to fetch git submodules!");
+
+    // checkout tag
+    std::process::Command::new("git")
+        .arg("checkout")
+        .arg(threadx_tag)
+        .current_dir(src_path.clone())
+        .output()
+        .expect("Unable to checkout threadx tag");
+
 
     let target = env::var("TARGET").expect("TARGET is not set");
 
