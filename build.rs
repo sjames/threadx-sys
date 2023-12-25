@@ -5,6 +5,8 @@ use std::os::unix::fs::OpenOptionsExt;
 use std::path::PathBuf;
 use std::process::Command;
 use std::env;
+use bindgen::Builder;
+use bindgen::callbacks::ParseCallbacks;
 use cmake::Config;
 
 fn main() {
@@ -157,7 +159,7 @@ fn main() {
         bindings = bindings.clang_arg(format!("-D{}", define));
     }
 
-    
+    let mut bindings = configure_builder(bindings);
 
     // Get the standard include paths from the compiler
     // Create an empty file to pass to the compiler
@@ -202,4 +204,103 @@ fn main() {
         .expect("Couldn't write bindings");
     // Copy the file to src/generated.rs to keep the documentation build happy
     std::fs::copy(PathBuf::from(bindings_path), PathBuf::from("src/generated.rs")).unwrap();
+}
+
+// Configure the builder
+fn configure_builder(mut builder : Builder) -> Builder {
+    builder
+    .fit_macro_constants(false)
+    .parse_callbacks(Box::new(Callbacks{}))
+}
+
+
+#[derive(Debug)]
+struct Callbacks;
+
+impl ParseCallbacks for Callbacks {
+    // fn will_parse_macro(&self, _name: &str) -> bindgen::callbacks::MacroParsingBehavior {
+    //     println!("MACRO: {}", _name);
+    //     bindgen::callbacks::MacroParsingBehavior::Default
+    // }
+
+    // fn generated_name_override(
+    //     &self,
+    //     _item_info: bindgen::callbacks::ItemInfo<'_>,
+    // ) -> Option<String> {
+    //     None
+    // }
+
+    // fn generated_link_name_override(
+    //     &self,
+    //     _item_info: bindgen::callbacks::ItemInfo<'_>,
+    // ) -> Option<String> {
+    //     None
+    // }
+
+    // fn int_macro(&self, _name: &str, _value: i64) -> Option<bindgen::callbacks::IntKind> {
+    //     println!("Int Macro: {}={}", _name, _value);
+    //     Some(bindgen::callbacks::IntKind::U32)
+    // }
+
+    // fn str_macro(&self, _name: &str, _value: &[u8]) { 
+    //     println!("STR MACRO: {}={}", _name, String::from_utf8_lossy(_value))
+    // }
+
+    // fn func_macro(&self, _name: &str, _value: &[&[u8]]) {
+    //     println!("FUNC MACRO: {}", _name);
+    //     for v in _value {
+    //         println!("   Value:{}",String::from_utf8_lossy(v))
+    //     }
+    // }
+
+    // fn enum_variant_behavior(
+    //     &self,
+    //     _enum_name: Option<&str>,
+    //     _original_variant_name: &str,
+    //     _variant_value: bindgen::callbacks::EnumVariantValue,
+    // ) -> Option<bindgen::callbacks::EnumVariantCustomBehavior> {
+    //     None
+    // }
+
+    // fn enum_variant_name(
+    //     &self,
+    //     _enum_name: Option<&str>,
+    //     _original_variant_name: &str,
+    //     _variant_value: bindgen::callbacks::EnumVariantValue,
+    // ) -> Option<String> {
+    //     None
+    // }
+
+    // fn item_name(&self, _original_item_name: &str) -> Option<String> {
+    //     None
+    // }
+
+    // fn header_file(&self, _filename: &str) {}
+
+    // fn include_file(&self, _filename: &str) {}
+
+    // fn read_env_var(&self, _key: &str) {}
+
+    // fn blocklisted_type_implements_trait(
+    //     &self,
+    //     _name: &str,
+    //     _derive_trait: bindgen::callbacks::DeriveTrait,
+    // ) -> Option<bindgen::callbacks::ImplementsTrait> {
+    //     None
+    // }
+
+    // fn add_derives(&self, _info: &bindgen::callbacks::DeriveInfo<'_>) -> Vec<String> {
+    //     vec![]
+    // }
+
+    // fn process_comment(&self, _comment: &str) -> Option<String> {
+    //     None
+    // }
+
+    // fn field_visibility(
+    //     &self,
+    //     _info: bindgen::callbacks::FieldInfo<'_>,
+    // ) -> Option<bindgen::FieldVisibilityKind> {
+    //     None
+    // }
 }
