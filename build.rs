@@ -1,10 +1,12 @@
 // Build script for Building threadx and to create the bindings
 
+use std::cell::RefCell;
 use std::io::{Write, BufRead};
 use std::os::unix::fs::OpenOptionsExt;
 use std::path::PathBuf;
 use std::process::Command;
 use std::env;
+use std::sync::{Arc, Mutex};
 use bindgen::Builder;
 use bindgen::callbacks::ParseCallbacks;
 use cmake::Config;
@@ -158,8 +160,10 @@ fn main() {
     for define in defines {
         bindings = bindings.clang_arg(format!("-D{}", define));
     }
+    
+    let int_macros = Arc::new(Mutex::new(Vec::new()));
 
-    let mut bindings = configure_builder(bindings);
+    let mut bindings = configure_builder(bindings, int_macros.clone());
 
     // Get the standard include paths from the compiler
     // Create an empty file to pass to the compiler
@@ -202,20 +206,32 @@ fn main() {
 
     bindings.write_to_file(bindings_path.clone())
         .expect("Couldn't write bindings");
+
+    // now generate the int macros
+    let mut out_file = std::fs::OpenOptions::new().create(false).append(true).write(true).open(&bindings_path).expect("Unable to open bindings file");
+
+    writeln!(out_file,"// Constants extracted from TX_API.H and TX_PORT.H with overridden values").expect("Unable to write int macros");
+    for (name, value) in int_macros.lock().unwrap().iter() {
+        writeln!(out_file, "pub const {} : UINT = {};", name, value).expect("Unable to write int macro");
+    }
+
     // Copy the file to src/generated.rs to keep the documentation build happy
     std::fs::copy(PathBuf::from(bindings_path), PathBuf::from("src/generated.rs")).unwrap();
 }
 
 // Configure the builder
-fn configure_builder(mut builder : Builder) -> Builder {
+fn configure_builder(mut builder : Builder, int_macros: Arc<Mutex<Vec<(String,String)>>>) -> Builder {
     builder
     .fit_macro_constants(false)
-    .parse_callbacks(Box::new(Callbacks{}))
+    .parse_callbacks(Box::new(Callbacks{int_macros}))
+
 }
 
 
 #[derive(Debug)]
-struct Callbacks;
+struct Callbacks{
+    int_macros: Arc<Mutex<Vec<(String,String)>>>,
+}
 
 impl ParseCallbacks for Callbacks {
     // fn will_parse_macro(&self, _name: &str) -> bindgen::callbacks::MacroParsingBehavior {
@@ -237,10 +253,13 @@ impl ParseCallbacks for Callbacks {
     //     None
     // }
 
-    // fn int_macro(&self, _name: &str, _value: i64) -> Option<bindgen::callbacks::IntKind> {
-    //     println!("Int Macro: {}={}", _name, _value);
-    //     Some(bindgen::callbacks::IntKind::U32)
-    // }
+    fn int_macro(&self, _name: &str, _value: i64) -> Option<bindgen::callbacks::IntKind> {
+        //println!("Int Macro: {}={}", _name, _value);
+        if _name.starts_with("TX_") {
+            self.int_macros.lock().unwrap().push((_name.to_string(), _value.to_string()));
+        }
+        Some(bindgen::callbacks::IntKind::U32)
+    }
 
     // fn str_macro(&self, _name: &str, _value: &[u8]) { 
     //     println!("STR MACRO: {}={}", _name, String::from_utf8_lossy(_value))

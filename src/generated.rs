@@ -1134,3 +1134,28 @@ extern "C" {
 extern "C" {
     pub fn _tx_trace_interrupt_control(new_posture: UINT) -> UINT;
 }
+// Constants extracted from TX_API.H and TX_PORT.H with overridden values
+pub const TX_MAX_PRIORITIES : UINT = 32;
+pub const TX_MINIMUM_STACK : UINT = 200;
+pub const TX_TIMER_THREAD_STACK_SIZE : UINT = 1024;
+pub const TX_TIMER_THREAD_PRIORITY : UINT = 0;
+pub const TX_INT_DISABLE : UINT = 1;
+pub const TX_INT_ENABLE : UINT = 0;
+pub const TX_TRACE_TIME_MASK : UINT = 4294967295;
+pub const TX_PORT_SPECIFIC_BUILD_OPTIONS : UINT = 0;
+pub const TX_TIMER_TICKS_PER_SECOND : UINT = 100;
+pub const TX_TRACE_USER_EVENT_START : UINT = 4096;
+pub const TX_TRACE_USER_EVENT_END : UINT = 65535;
+pub const TX_TRACE_ALL_EVENTS : UINT = 2047;
+pub const TX_TRACE_INTERNAL_EVENTS : UINT = 1;
+pub const TX_TRACE_BLOCK_POOL_EVENTS : UINT = 2;
+pub const TX_TRACE_BYTE_POOL_EVENTS : UINT = 4;
+pub const TX_TRACE_EVENT_FLAGS_EVENTS : UINT = 8;
+pub const TX_TRACE_INTERRUPT_CONTROL_EVENT : UINT = 16;
+pub const TX_TRACE_MUTEX_EVENTS : UINT = 32;
+pub const TX_TRACE_QUEUE_EVENTS : UINT = 64;
+pub const TX_TRACE_SEMAPHORE_EVENTS : UINT = 128;
+pub const TX_TRACE_THREAD_EVENTS : UINT = 256;
+pub const TX_TRACE_TIME_EVENTS : UINT = 512;
+pub const TX_TRACE_TIMER_EVENTS : UINT = 1024;
+pub const TX_TRACE_USER_EVENTS : UINT = 2147483648;
