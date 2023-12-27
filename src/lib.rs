@@ -1,14 +1,21 @@
 #![no_std]
 
+use core::ffi::c_void;
+
 include!("generated.rs");
 
 // Functions that are implemented in assembly that are missed by bindgen
 // TODO: the SVCall and PendSV call are probably specific to Arm Cortex
 // and should be enabled based on the selected target.
 extern "C" {
+    #[no_mangle]
     pub fn _tx_timer_interrupt() -> ();
+    #[no_mangle]
     pub fn __tx_SVCallHandler() -> ();
+    #[no_mangle]
     pub fn __tx_PendSVHandler() -> ();
+    #[no_mangle]
+    pub static mut _tx_thread_system_stack_ptr : *mut c_void;
 }
 
 // Constants that are not parsed by bindgen
