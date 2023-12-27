@@ -29,7 +29,7 @@ Your application must include the following files as described in https://learn.
 2. xxx_vectors.S
 3. tx_initialize_low_level.S
 
-I have started working on safe rust bindings for threadx. This will be available soon. Contact 
+I have started working on safe rust bindings for threadx which will do all this for you in pure Rust. This will be available soon. Contact 
 me to collaborate!  PRs welcome.
 
 
